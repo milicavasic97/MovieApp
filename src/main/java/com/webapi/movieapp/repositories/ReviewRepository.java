@@ -9,4 +9,6 @@ import java.util.List;
 
 public interface ReviewRepository extends JpaRepository<Review, ReviewId> {
     List<Review> findAllByUser_UserIdAndFavourite(Integer userId, Boolean favourite);
+
+    Review findByUser_UserIdAndAndContent_ContentId(Integer userId, Integer contentId);
 }

@@ -1,10 +1,12 @@
 package com.webapi.movieapp.controllers;
 
 import com.webapi.movieapp.dtos.*;
+import com.webapi.movieapp.security.models.AuthUserDetails;
 import com.webapi.movieapp.service.ContentService;
 import com.webapi.movieapp.service.GenreService;
 import com.webapi.movieapp.service.ReviewService;
 import javassist.NotFoundException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -43,8 +45,9 @@ public class MovieController {
     }
 
     @GetMapping("/favourites")
-    public List<ContentBaseDTO> getFavourites(@RequestParam Integer userId) {
-        return reviewService.getFavourites("MOVIE", userId);
+    public List<ContentBaseDTO> getFavourites() {
+        return reviewService.getFavourites("MOVIE",
+                ((AuthUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getUserId());
     }
 
     @PostMapping("/save")

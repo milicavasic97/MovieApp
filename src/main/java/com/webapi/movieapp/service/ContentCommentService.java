@@ -11,6 +11,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -29,6 +30,7 @@ public class ContentCommentService extends CrudJpaService<ContentComment, Intege
         return contentCommentRepository.findAllByContent_ContentId(contentId)
                 .stream()
                 .map(o -> modelMapper.map(o, ContentCommentDTO.class))
+                .sorted(Comparator.comparing(ContentCommentDTO::getCommentDate))
                 .collect(Collectors.toList());
     }
 

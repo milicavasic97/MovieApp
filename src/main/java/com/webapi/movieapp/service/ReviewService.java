@@ -37,12 +37,12 @@ public class ReviewService extends CrudJpaService<Review, ReviewId> {
         ReviewId reviewId = new ReviewId(authUserDetails.getUserId(), contentId);
         if (reviewRepository.existsById(reviewId)) {
             Review existingReview = reviewRepository.getById(reviewId);
-            if(onlyRate)
+            if (onlyRate)
                 existingReview.setRating(rating);
             else
                 existingReview.setFavourite(mark);
             return super.update(reviewId, existingReview, ReviewDTO.class);
-        } else if(contentService.existsById(contentId)) {
+        } else if (contentService.existsById(contentId)) {
             ReviewDTO newReview = new ReviewDTO(authUserDetails.getUserId(), contentId,
                     null, !onlyRate && mark);
             return super.insert(newReview, ReviewDTO.class);
@@ -54,7 +54,19 @@ public class ReviewService extends CrudJpaService<Review, ReviewId> {
         return reviewRepository.findAllByUser_UserIdAndFavourite(userId, true)
                 .stream()
                 .filter(o -> o.getContent().getContentType().getName().equals(contentTypeName))
-                .map(o -> modelMapper.map(o, ContentBaseDTO.class))
+                .map(o -> modelMapper.map(o.getContent(), ContentBaseDTO.class))
                 .collect(Collectors.toList());
+    }
+
+    public List<ContentBaseDTO> getAllFavourites(Integer userId) {
+        return reviewRepository.findAllByUser_UserIdAndFavourite(userId, true)
+                .stream()
+                .map(o -> modelMapper.map(o.getContent(), ContentBaseDTO.class))
+                .collect(Collectors.toList());
+    }
+
+    public boolean getFavouriteByUserIdAndContentId(Integer userId, Integer contentId) {
+        Review review = reviewRepository.findByUser_UserIdAndAndContent_ContentId(userId, contentId);
+        return review != null ? review.getFavourite() : false;
     }
 }

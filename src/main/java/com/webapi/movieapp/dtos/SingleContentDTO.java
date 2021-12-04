@@ -11,5 +11,7 @@ public class SingleContentDTO extends ContentBaseDTO {
     private LanguageDTO language;
     private CountryDTO country;
     private ContentTypeDTO contentType;
-    private List<GenreDTO> genreList;
+    private boolean favourite;
+    private List<GenreDTO> genres;
+    private List<ContentCommentDTO> contentComments;
 }

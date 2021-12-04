@@ -4,8 +4,10 @@ import com.webapi.movieapp.base.CrudJpaService;
 import com.webapi.movieapp.dtos.*;
 import com.webapi.movieapp.models.*;
 import com.webapi.movieapp.repositories.ContentRepository;
+import com.webapi.movieapp.security.models.AuthUserDetails;
 import javassist.NotFoundException;
 import org.modelmapper.ModelMapper;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -25,6 +27,7 @@ public class ContentService extends CrudJpaService<Content, Integer> {
     private final EpisodeService episodeService;
     private final ReviewService reviewService;
     private final ContentTypeService contentTypeService;
+    private final ContentCommentService contentCommentService;
     private final ModelMapper modelMapper;
 
     public ContentService(ContentRepository contentRepository, ModelMapper modelMapper, GenreService genreService,
@@ -32,7 +35,8 @@ public class ContentService extends CrudJpaService<Content, Integer> {
                           MovieRoleService movieRoleService, MovieCastService movieCastService,
                           SeasonService seasonService, SeriesCastService seriesCastService,
                           MoviePeopleRoleService moviePeopleRoleService, EpisodeService episodeService,
-                          ReviewService reviewService, ContentTypeService contentTypeService) {
+                          ReviewService reviewService, ContentTypeService contentTypeService,
+                          ContentCommentService contentCommentService) {
         super(contentRepository, modelMapper, Content.class);
         this.contentRepository = contentRepository;
         this.genreService = genreService;
@@ -47,6 +51,7 @@ public class ContentService extends CrudJpaService<Content, Integer> {
         this.episodeService = episodeService;
         this.reviewService = reviewService;
         this.contentTypeService = contentTypeService;
+        this.contentCommentService = contentCommentService;
     }
 
     public Content insert(ContentRequestDTO request) {
@@ -88,6 +93,22 @@ public class ContentService extends CrudJpaService<Content, Integer> {
                 .stream()
                 .filter(o -> o.getContent().getContentType().getName().equals(contentTypeName))
                 .map(o -> modelMapper.map(o.getContent(), ContentBaseDTO.class))
+                .filter(o -> o.isActive())
+                .collect(Collectors.toList());
+        if (num != null) {
+            contents = contents.stream()
+                    .limit(num)
+                    .collect(Collectors.toList());
+        }
+        return contents;
+    }
+
+    public List<ContentBaseDTO> getAllByGenreId(Integer genreId, Integer num) throws NotFoundException {
+        Genre genre = genreService.findById(genreId, Genre.class);
+        List<ContentBaseDTO> contents = genre.getContentGenreList()
+                .stream()
+                .map(o -> modelMapper.map(o.getContent(), ContentBaseDTO.class))
+                .filter(o -> o.isActive())
                 .collect(Collectors.toList());
         if (num != null) {
             contents = contents.stream()
@@ -110,7 +131,13 @@ public class ContentService extends CrudJpaService<Content, Integer> {
                 .stream()
                 .map(o -> modelMapper.map(o.getGenre(), GenreDTO.class))
                 .collect(Collectors.toList());
-        singleContentDTO.setGenreList(genreList);
+        List<ContentCommentDTO> contentCommentList = contentCommentService.findAllByContentId(contentId);
+        singleContentDTO.setGenres(genreList);
+        singleContentDTO.setContentComments(contentCommentList);
+        singleContentDTO.setFavourite(reviewService
+                .getFavouriteByUserIdAndContentId(((AuthUserDetails) SecurityContextHolder
+                .getContext().getAuthentication().getPrincipal()).getUserId(),
+                contentId));
         return singleContentDTO;
     }
 
@@ -175,6 +202,7 @@ public class ContentService extends CrudJpaService<Content, Integer> {
         return contentRepository.findAllByContentTypeOrderByRatingDesc(contentType)
                 .stream()
                 .map(o -> modelMapper.map(o, ContentBaseDTO.class))
+                .filter(o -> o.isActive())
                 .collect(Collectors.toList());
     }
 
@@ -183,6 +211,7 @@ public class ContentService extends CrudJpaService<Content, Integer> {
         return contentRepository.findAllByContentTypeOrderByReleaseDateDesc(contentType)
                 .stream()
                 .map(o -> modelMapper.map(o, ContentBaseDTO.class))
+                .filter(o -> o.isActive())
                 .collect(Collectors.toList());
     }
 

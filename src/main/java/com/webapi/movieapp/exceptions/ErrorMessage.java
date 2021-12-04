@@ -10,7 +10,7 @@ import java.util.Date;
 @Setter
 @AllArgsConstructor
 public class ErrorMessage {
-    private Date timestamp;
+    private String timestamp;
     private int status;
     private String error;
     private String path;

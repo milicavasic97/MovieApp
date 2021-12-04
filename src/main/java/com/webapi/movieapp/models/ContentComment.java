@@ -4,6 +4,7 @@ import com.webapi.movieapp.base.BaseEntity;
 import lombok.Data;
 
 import javax.persistence.*;
+import java.util.Date;
 
 @Data
 @Entity
@@ -18,6 +19,9 @@ public class ContentComment implements BaseEntity<Integer> {
 
     @Column(nullable = true)
     private Integer replyId;
+
+    @Column(nullable = true)
+    private Date commentDate;
 
     @ManyToOne
     @JoinColumn(name = "userId")

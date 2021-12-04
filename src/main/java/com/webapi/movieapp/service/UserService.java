@@ -9,6 +9,7 @@ import com.webapi.movieapp.base.CrudJpaService;
 import com.webapi.movieapp.dtos.ForgotPasswordDTO;
 import com.webapi.movieapp.dtos.ResetPasswordDTO;
 import com.webapi.movieapp.dtos.UserDTO;
+import com.webapi.movieapp.dtos.UserRequestDTO;
 import com.webapi.movieapp.exceptions.TokenExpiredException;
 import com.webapi.movieapp.models.*;
 import com.webapi.movieapp.repositories.PasswordResetTokenRepository;
@@ -53,7 +54,7 @@ public class UserService extends CrudJpaService<User, Integer> {
         this.modelMapper = modelMapper;
     }
 
-    public User save(UserDTO userDto) {
+    public User save(UserRequestDTO userDto) {
         User user = super.insert(buildUserFromDto(userDto), User.class);
         userDto.getRoleIds().forEach(roleId -> {
             UserRoleId key = new UserRoleId(user.getUserId(), roleId);
@@ -63,11 +64,16 @@ public class UserService extends CrudJpaService<User, Integer> {
         return userRepository.save(user);
     }
 
+
     public Optional<User> findUserByUsername(String username) {
         return userRepository.findByUsername(username);
     }
 
-    public User update(UserDTO userDto) throws NotFoundException {
+//    public UserDTO findUserDTOByUsername(String username) {
+//        return modelMapper.map(userRepository.findUserByUsername(username), UserDTO.class);
+//    }
+
+    public User update(UserRequestDTO userDto) throws NotFoundException {
         if (userRepository.existsById(userDto.getUserId())) {
             userRoleRepository.deleteByUser_UserId(userDto.getUserId());
             User user = super.update(userDto.getUserId(), buildUserFromDto(userDto), User.class);
@@ -87,7 +93,7 @@ public class UserService extends CrudJpaService<User, Integer> {
         userRepository.save(user);
     }
 
-    private User buildUserFromDto(UserDTO userDto) {
+    private User buildUserFromDto(UserRequestDTO userDto) {
         User user = modelMapper.map(userDto, User.class);
         user.setPassword(passwordEncoder.encode(userDto.getPassword()));
         user.setActive(true);
@@ -104,7 +110,10 @@ public class UserService extends CrudJpaService<User, Integer> {
         passwordResetToken.setExpiryDate(LocalDateTime.now().plusHours(12));
         passwordResetTokenRepository.save(passwordResetToken);
 
-        String message = "http://" +
+        String message =
+//                "TOKEN FOR PASSWORD RESET: <b>" + token + "</b>";
+
+                "http://" +
                 InetAddress.getLoopbackAddress().getHostAddress() +
                 ":" + serverPort + "/user/reset-password?token=" + token;
         emailService.sendSimpleMessage(user.getEmail(), "MovieApp - resetovanje lozinke", message);

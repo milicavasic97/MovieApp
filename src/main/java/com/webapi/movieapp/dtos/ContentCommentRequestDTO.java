@@ -5,10 +5,9 @@ import lombok.Data;
 import java.util.Date;
 
 @Data
-public class ContentCommentDTO {
+public class ContentCommentRequestDTO {
     private Integer commentId;
     private Integer userId;
-    private UserDTO user;
     private Integer contentId;
     private String comment;
     private Integer replyId;

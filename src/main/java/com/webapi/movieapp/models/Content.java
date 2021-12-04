@@ -21,13 +21,13 @@ public class Content implements BaseEntity<Integer> {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer contentId;
-    @Column(nullable = false, length = 20)
-    private String  title;
+    @Column(nullable = false, length = 200)
+    private String title;
     @Column(nullable = false)
     private Integer year;
     @Column(nullable = false)
     private Integer duration;
-    @Column(nullable = false)
+    @Column(nullable = true)
     private Date releaseDate;
     @Column(nullable = false)
     private Float rating;
@@ -46,6 +46,16 @@ public class Content implements BaseEntity<Integer> {
     @ManyToOne
     @JoinColumn(name = "languageId", nullable = false)
     private Language language;
+
+    @OneToMany(mappedBy = "content", cascade = CascadeType.ALL)
+    @JsonIgnore
+    private List<ContentGenre> contentGenres;
+    @OneToMany(mappedBy = "content", cascade = CascadeType.ALL)
+    @JsonIgnore
+    private List<ContentComment> contentComments;
+    @OneToMany(mappedBy = "content", cascade = CascadeType.ALL)
+    @JsonIgnore
+    private List<Review> reviews;
 
     @Override
     public Integer getId() {

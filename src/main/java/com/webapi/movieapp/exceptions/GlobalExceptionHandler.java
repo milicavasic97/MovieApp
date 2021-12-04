@@ -22,7 +22,7 @@ public class GlobalExceptionHandler {
 
     private ResponseEntity<ErrorMessage> errorBuilder(Exception ex, WebRequest request, String errorMessage,
                                                       HttpStatus status) {
-        ErrorMessage message = new ErrorMessage(new Date(), status.value(),
+        ErrorMessage message = new ErrorMessage(new Date().toString(), status.value(),
                 (debug ? ex.getMessage() : ""), request.getDescription(false));
 
         return new ResponseEntity<ErrorMessage>(message, status);

@@ -7,7 +7,9 @@ import com.webapi.movieapp.service.GenreService;
 import javassist.NotFoundException;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/genres")
@@ -19,9 +21,12 @@ public class GenreController {
         this.genreService = genreService;
     }
 
-    @GetMapping
-    public List<Genre> getAll(){
-        return genreService.findAll(Genre.class);
+    @GetMapping()
+    public List<GenreDTO> getAll(){
+        return genreService.findAll(GenreDTO.class)
+                .stream()
+                .sorted(Comparator.comparing(GenreDTO::getName))
+                .collect(Collectors.toList());
     }
 
     @PostMapping("/save")

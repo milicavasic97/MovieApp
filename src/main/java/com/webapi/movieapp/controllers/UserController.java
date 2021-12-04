@@ -15,6 +15,7 @@ import com.webapi.movieapp.service.RoleService;
 import com.webapi.movieapp.service.UserService;
 import com.webapi.movieapp.util.JwtUtil;
 import javassist.NotFoundException;
+import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -37,11 +38,12 @@ public class UserController {
     private final UserDetailsServiceImpl userDetailsService;
     private final RoleService roleService;
     private final JwtUtil jwtUtil;
+    private final ModelMapper modelMapper;
 
     public UserController(UserService userService, ContentCommentService commentService,
                           AuthenticationManager authenticationManager, ContentService contentService,
                           UserDetailsServiceImpl userDetailsService, RoleService roleService,
-                          JwtUtil jwtUtil) {
+                          JwtUtil jwtUtil, ModelMapper modelMapper) {
         this.userService = userService;
         this.commentService = commentService;
         this.authenticationManager = authenticationManager;
@@ -49,10 +51,11 @@ public class UserController {
         this.userDetailsService = userDetailsService;
         this.roleService = roleService;
         this.jwtUtil = jwtUtil;
+        this.modelMapper = modelMapper;
     }
 
     @PostMapping("/add-user-role")
-    public Role addRole(@RequestBody Role request){
+    public Role addRole(@RequestBody Role request) {
         return roleService.save(request);
     }
 
@@ -70,12 +73,19 @@ public class UserController {
         final UserDetails userDetails = userDetailsService.loadUserByUsername(authenticationRequest.getUsername());
         final String jwt = jwtUtil.generateToken(userDetails);
 
-        return new ResponseEntity<AuthenticationResponse>(new AuthenticationResponse(jwt), HttpStatus.OK);
+        return new ResponseEntity<AuthenticationResponse>(
+                new AuthenticationResponse(jwt), HttpStatus.OK);
     }
 
     @GetMapping("/by-id")
     public UserDTO findById(@RequestParam int id) throws NotFoundException {
         return userService.findById(id, UserDTO.class);
+    }
+
+    @GetMapping("/details")
+    public UserDTO getUser() throws NotFoundException {
+        AuthUserDetails userDetails = (AuthUserDetails)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return userService.findById(userDetails.getUserId(), UserDTO.class);
     }
 
     @GetMapping("/favourite-content")
@@ -85,12 +95,12 @@ public class UserController {
     }
 
     @PostMapping("/register")
-    public User save(@RequestBody UserDTO userDto) {
+    public User save(@RequestBody UserRequestDTO userDto) {
         return userService.save(userDto);
     }
 
     @PutMapping("/update")
-    public User update(@RequestBody UserDTO userDto) throws NotFoundException {
+    public User update(@RequestBody UserRequestDTO userDto) throws NotFoundException {
         return userService.update(userDto);
     }
 
@@ -99,16 +109,16 @@ public class UserController {
         userService.delete(id);
     }
 
-    @PostMapping("/forgot-password")
-    public ResponseEntity<?> forgotPassword(@RequestBody ForgotPasswordDTO forgotPasswordDto) throws NotFoundException {
-        userService.forgotPassword(forgotPasswordDto);
-        return new ResponseEntity<>(HttpStatus.OK);
-    }
-
-    @PostMapping("/reset-password")
-    public User resetPassword(@RequestParam String token, @RequestBody ResetPasswordDTO resetPasswordDto) throws NotFoundException, TokenExpiredException, TokenExpiredException {
-        return userService.resetPassword(token, resetPasswordDto);
-    }
+//    @PostMapping("/forgot-password")
+//    public ResponseEntity<?> forgotPassword(@RequestBody ForgotPasswordDTO forgotPasswordDto) throws NotFoundException {
+//        userService.forgotPassword(forgotPasswordDto);
+//        return new ResponseEntity<>(HttpStatus.OK);
+//    }
+//
+//    @PostMapping("/reset-password")
+//    public User resetPassword(@RequestParam String token, @RequestBody ResetPasswordDTO resetPasswordDto) throws NotFoundException, TokenExpiredException {
+//        return userService.resetPassword(token, resetPasswordDto);
+//    }
 
     @PutMapping("/edit-comment")
     public ContentCommentDTO editComment(@RequestBody ContentCommentDTO request) throws NotFoundException, NotAuthorizedException {

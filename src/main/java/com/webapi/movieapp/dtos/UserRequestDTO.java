@@ -11,7 +11,7 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserDTO {
+public class UserRequestDTO {
 
     private Integer userId;
     private String username;
@@ -20,4 +20,6 @@ public class UserDTO {
     private String address;
     private String phoneNumber;
     private String email;
+    private String password;
+    private List<Integer> roleIds;
 }
